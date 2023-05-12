@@ -93,3 +93,22 @@ pj stat
 # done
 - [1]: ██████
 ```
+
+
+#### Adding a field to a feature
+You can add notes to a feature by adding fields.
+
+```bash
+# e.g. pj add field [feature id] [field label] [field value]
+pj add field 0 "url" "http://wikipedia.org"
+```
+
+You can look at details of a feature.
+```bash
+# pj ls [feature id]
+pj ls 0
+
+| fix_something                 |
+|-------------------------------|
+|     url: http://wikipedia.org |
+```
