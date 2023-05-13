@@ -9,7 +9,7 @@ PlanJAM creates a `.plan` dir in the current working directory to save data in. 
 #### Download and install with `go install`
 
 ```bash
-go install github.com/dfirebaugh/planjam
+go install github.com/dfirebaugh/planjam@latest
 ```
 
 For convenience, you could alias `planjam` to `pj`.
