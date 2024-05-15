@@ -10,8 +10,8 @@ import (
 )
 
 type FeatureReference struct {
-	ID    string
-	Label string
+	ID    string `yaml:"id"`
+	Label string `yaml:"label"`
 }
 
 func (r FeatureReference) Feature() Feature {
@@ -53,8 +53,8 @@ func (f Feature) String() string {
 		table.AppendToColumn(0, "empty")
 		return table.String()
 	}
-	for _, f := range f.Fields {
-		table.AppendToColumn(0, fmt.Sprintf("    %s: %v", f.Label, f.Value))
+	for _, field := range f.Fields {
+		table.AppendToColumn(0, fmt.Sprintf("    %s: %v", field.Label, field.Value))
 	}
 
 	return table.String()

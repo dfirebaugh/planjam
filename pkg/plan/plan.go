@@ -21,9 +21,8 @@ type Board struct {
 	ShowLaneNumbers bool   `yaml:"-"`
 }
 
-// NewBoardFromYAML parses the given YAML data and returns a new Board.
 func GetBoard(data []byte) (*Board, error) {
-	board := &Board{}
+	var board Board
 	var parsedLanes []Lane
 	err := yaml.Unmarshal(data, &parsedLanes)
 
@@ -34,7 +33,7 @@ func GetBoard(data []byte) (*Board, error) {
 	}
 
 	board.Lanes = formattedLanes
-	return board, err
+	return &board, err
 }
 
 func fmtLabel(label string) string {
@@ -120,34 +119,45 @@ func (b *Board) CountFeatures() int {
 func (b *Board) Move(id string, laneLabel string) *Board {
 	Feature := b.GetFeatureRef(id)
 
-	laneExists := false
-	for _, l := range b.Lanes {
-		if l.Label == laneLabel {
-			laneExists = true
-		}
-	}
-
-	if !laneExists {
+	if Feature.ID == "" {
+		fmt.Printf("Feature with ID '%s' does not exist. Cannot move feature.\n", id)
 		return b
 	}
 
+	targetLaneExists := false
+	for _, l := range b.Lanes {
+		if l.Label == laneLabel {
+			targetLaneExists = true
+			break
+		}
+	}
+
+	if !targetLaneExists {
+		fmt.Printf("Lane '%s' does not exist. Cannot move feature.\n", laneLabel)
+		return b
+	}
+
+	var newLanes []Lane
 	for _, l := range b.Lanes {
 		newLane := Lane{
-			Features: []FeatureReference{},
 			Label:    l.Label,
+			Features: []FeatureReference{},
 		}
+
 		for _, iss := range l.Features {
-			if iss.ID == id {
-				continue
+			if iss.ID != id {
+				newLane.Features = append(newLane.Features, iss)
 			}
-			newLane.Features = append(newLane.Features, iss)
 		}
 
 		if l.Label == laneLabel {
 			newLane.Features = append(newLane.Features, Feature)
 		}
-		b.Lanes = append(b.Lanes, newLane)
+
+		newLanes = append(newLanes, newLane)
 	}
+
+	b.Lanes = newLanes
 	return b
 }
 
@@ -162,29 +172,29 @@ func (b *Board) GetLaneByLabel(label string) Lane {
 	return Lane{}
 }
 
-func (b *Board) AddLane(label string) Board {
+func (b *Board) AddLane(label string) *Board {
 	l := b.GetLaneByLabel(label)
 	if l.Label == label {
 		println("lane already exists")
-		return *b
+		return b
 	}
 	b.Lanes = append(b.Lanes, Lane{
 		Label: label,
 	})
 
-	return *b
+	return b
 }
 
-func (b *Board) AddFeature(label string) Board {
+func (b *Board) AddFeature(label string) *Board {
 	b.Lanes[0].Features = append(b.Lanes[0].Features, FeatureReference{
 		ID:    strconv.Itoa(b.CountFeatures()),
 		Label: fmtLabel(label),
 	})
-	return *b
+	return b
 }
 
-func (b *Board) AddField(FeatureLabel string, fieldLabel string) Board {
-	return *b
+func (b *Board) AddField(FeatureLabel string, fieldLabel string) *Board {
+	return b
 }
 
 func (b *Board) RemoveFeature(id string) {
@@ -209,6 +219,6 @@ func (b *Board) RemoveFeature(id string) {
 	b.Lanes = lanes
 }
 
-func (b *Board) MoveLane(position int) Board {
-	return *b
+func (b *Board) MoveLane(position int) *Board {
+	return b
 }

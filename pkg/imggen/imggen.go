@@ -15,13 +15,8 @@ import (
 )
 
 type Display interface {
-	// Size returns the current size of the display.
 	Size() (x, y int16)
-
-	// SetPizel modifies the internal buffer.
 	SetPixel(x, y int16, c color.RGBA)
-
-	// Display sends the buffer (if any) to the screen.
 	Display() error
 }
 
@@ -37,10 +32,7 @@ func Gen(boardLabel string, b *plan.Board) *image.RGBA {
 
 	printAt(fb, fmt.Sprintf("Plan Jam Report -- Board: %s", boardLabel), 5, letterYOffset, colornames.Greenyellow)
 
-	// printAt(fb, fmt.Sprintf("%d", 12), 0, 0+letterYOffset+linePadding, colornames.Greenyellow)
-	// printAt(fb, fmt.Sprintf("%d", 33), 0, (2*letterYOffset)+linePadding, colornames.Greenyellow)
-
-	printBarChart(fb, 0, 30)
+	printBarChart(fb, 0, 30, b)
 
 	img := image.NewRGBA(image.Rect(0, 0, imageWidth, imageHeight))
 	img.Pix = fb.GetFrame()
@@ -57,14 +49,27 @@ func percentageBar(fb Display, percent float64, x float64, y float64, color colo
 	fill := geom.MakeRect(x, y, 200*percent, 10)
 
 	background.Filled(fb, colornames.Grey)
-	fill.Filled(fb, colornames.Green)
+	fill.Filled(fb, color)
 }
 
-func printBarChart(fb Display, x int, y int) {
-	printAt(fb, fmt.Sprintf("%d", 12), x+15, y+18, colornames.Greenyellow)
-	percentageBar(fb, .25, float64(x)+30, float64(y)+10, colornames.Green)
-	printAt(fb, fmt.Sprintf("%d", 15), x+15, y+33, colornames.Greenyellow)
-	percentageBar(fb, .69, float64(x)+30, float64(y)+25, colornames.Green)
-	printAt(fb, fmt.Sprintf("%d", 24), x+15, y+48, colornames.Greenyellow)
-	percentageBar(fb, 1, float64(x)+30, float64(y)+40, colornames.Green)
+func printBarChart(fb Display, x int, y int, b *plan.Board) {
+	totalFeatures := countTotalFeatures(b)
+
+	for i, lane := range b.Lanes {
+		yOffset := y + i*30
+
+		laneFeatureCount := len(lane.Features)
+		percentOfTotal := float64(laneFeatureCount) / float64(totalFeatures)
+
+		printAt(fb, fmt.Sprintf("%s: %d features", lane.Label, laneFeatureCount), x+10, yOffset+18, colornames.Greenyellow)
+		percentageBar(fb, percentOfTotal, float64(x)+20, float64(yOffset)+25, colornames.Green)
+	}
+}
+
+func countTotalFeatures(b *plan.Board) int {
+	total := 0
+	for _, lane := range b.Lanes {
+		total += len(lane.Features)
+	}
+	return total
 }

@@ -53,23 +53,36 @@ func init() {
 func preMoveFeature(arg string) {
 	b := readBoard()
 	feature := b.GetFeatureRef(arg)
+
+	if feature.ID == "" {
+		fmt.Printf("Feature with ID [%s] does not exist.\n", arg)
+		return
+	}
+
 	printBoardWithLaneNumbers()
 	fmt.Printf("Which lane should we move [%s] to? ", feature.Label)
 	laneIndex, _ := bufio.NewReader(os.Stdin).ReadString('\n')
 
-	li, err := strconv.Atoi(strings.ReplaceAll(laneIndex, "\n", ""))
+	li, err := strconv.Atoi(strings.TrimSpace(laneIndex))
 	if err != nil {
-		fmt.Errorf("error parsing lane index: %s", err)
+		fmt.Printf("Error parsing lane index: %s\n", err)
+		return
 	}
+
+	if li < 0 || li >= len(b.Lanes) {
+		fmt.Printf("Invalid lane index: %d. Lane does not exist.\n", li)
+		return
+	}
+
 	lane := b.GetLane(li)
 
-	fmt.Printf("Moving feature '%s' to lane '%s'...", feature.Label, lane.Label)
+	fmt.Printf("Moving feature '%s' to lane '%s'...\n", feature.Label, lane.Label)
 
 	moveFeature(feature.ID, lane.Label)
 }
 
 func moveFeature(id string, lane string) {
-	writeBoard(
-		readBoard().Move(id, lane),
-	)
+	b := readBoard()
+	b.Move(id, lane)
+	writeBoard(b)
 }
