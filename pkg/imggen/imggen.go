@@ -35,7 +35,7 @@ func Gen(boardLabel string, b *plan.Board) *image.RGBA {
 	printAt(fb, fmt.Sprintf("Plan Jam Report -- Board: %s", boardLabel), 5, letterYOffset, colornames.Greenyellow)
 
 	printBarChart(fb, 0, 30, b)
-	printPieChart(fb, 350, 50, 50, b)
+	printPieChart(fb, 350, 100, 50, b)
 
 	img := image.NewRGBA(image.Rect(0, 0, imageWidth, imageHeight))
 	img.Pix = fb.GetFrame()
@@ -84,33 +84,28 @@ func printPieChart(fb Display, centerX int, centerY int, radius int, b *plan.Boa
 	}
 
 	startAngle := 0.0
+	usedColors := make(map[color.RGBA]bool)
 
 	for _, lane := range b.Lanes {
 		laneFeatureCount := len(lane.Features)
 		angle := 2 * math.Pi * float64(laneFeatureCount) / float64(totalFeatures)
-		drawPieSlice(fb, centerX, centerY, radius, startAngle, startAngle+angle, randomColor())
+		color := randomUniqueColor(usedColors)
+		drawPieSlice(fb, centerX, centerY, radius, startAngle, startAngle+angle, color)
 		startAngle += angle
 	}
 }
 
 func drawPieSlice(fb Display, centerX int, centerY int, radius int, startAngle float64, endAngle float64, clr color.RGBA) {
 	for angle := startAngle; angle < endAngle; angle += 0.01 {
-		x1 := centerX + int(float64(radius)*math.Cos(angle))
-		y1 := centerY + int(float64(radius)*math.Sin(angle))
-		x2 := centerX + int(float64(radius)*math.Cos(angle+0.01))
-		y2 := centerY + int(float64(radius)*math.Sin(angle+0.01))
-
-		line1 := geom.MakeLine(geom.Point{X: float64(centerX), Y: float64(centerY)}, geom.Point{X: float64(x1), Y: float64(y1)})
-		line2 := geom.MakeLine(geom.Point{X: float64(x1), Y: float64(y1)}, geom.Point{X: float64(x2), Y: float64(y2)})
-		line3 := geom.MakeLine(geom.Point{X: float64(x2), Y: float64(y2)}, geom.Point{X: float64(centerX), Y: float64(centerY)})
-
-		line1.Draw(fb, clr)
-		line2.Draw(fb, clr)
-		line3.Draw(fb, clr)
+		for r := 0; r < radius; r++ {
+			x := centerX + int(float64(r)*math.Cos(angle))
+			y := centerY + int(float64(r)*math.Sin(angle))
+			fb.SetPixel(int16(x), int16(y), clr)
+		}
 	}
 }
 
-func randomColor() color.RGBA {
+func randomUniqueColor(usedColors map[color.RGBA]bool) color.RGBA {
 	colors := []color.RGBA{
 		colornames.Red,
 		colornames.Green,
@@ -121,5 +116,11 @@ func randomColor() color.RGBA {
 		colornames.Cyan,
 		colornames.Magenta,
 	}
-	return colors[rand.Intn(len(colors))]
+	for {
+		color := colors[rand.Intn(len(colors))]
+		if !usedColors[color] {
+			usedColors[color] = true
+			return color
+		}
+	}
 }
