@@ -32,7 +32,7 @@ const (
 	linePadding   = 2
 )
 
-func Gen(boardLabel string, b plan.Board) *image.RGBA {
+func Gen(boardLabel string, b *plan.Board) *image.RGBA {
 	fb := imagefb.New(imageWidth, imageHeight)
 
 	printAt(fb, fmt.Sprintf("Plan Jam Report -- Board: %s", boardLabel), 5, letterYOffset, colornames.Greenyellow)

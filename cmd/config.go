@@ -23,7 +23,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -50,8 +49,9 @@ func init() {
 }
 
 func readConfig() config.Config {
-	confFile, err := ioutil.ReadFile(filepath.Join(planDir, defaultConfig))
+	confFile, err := os.ReadFile(filepath.Join(planDir, defaultConfig))
 	if err != nil {
+		fmt.Printf("be sure to run planjam init first\n")
 		panic(err)
 	}
 

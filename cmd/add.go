@@ -80,31 +80,39 @@ func init() {
 	addCmd.AddCommand(addFieldCmd)
 }
 
+// Function to ensure the board exists or creates a new one if it does not
+func ensureBoardExists() {
+	b := readBoard()
+	writeBoard(b)
+}
+
 func addFeature(label string) error {
+	ensureBoardExists()
 	b := readBoard()
 
 	if len(b.Lanes) == 0 {
-		return errors.New("you must first create a lane (e.g. `planjam add lane todo`)")
+		return errors.New("no lanes on the board, please add a lane first")
 	}
 
 	b.AddFeature(label)
-
 	writeBoard(b)
 	return nil
 }
 
-func addField(id string, label string, value string) error {
+func addField(featureID, label, value string) error {
+	ensureBoardExists()
 	b := readBoard()
 
-	feature := b.GetFeatureRef(id).Feature()
+	feature := b.GetFeatureRef(featureID).Feature()
+
 	feature.AddField(label, value)
-
 	writeFeature(feature)
-
 	return nil
 }
 
 func addLane(label string) {
-	b := readBoard().AddLane(label)
+	ensureBoardExists()
+	b := readBoard()
+	b.AddLane(label)
 	writeBoard(b)
 }

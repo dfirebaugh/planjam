@@ -22,7 +22,7 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/dfirebaugh/planjam/pkg/plan"
@@ -46,8 +46,13 @@ var listCmd = &cobra.Command{
 			return
 		}
 		isASCIIDoc, _ := cmd.LocalFlags().GetBool("asciidoc")
+		isMarkdown, _ := cmd.LocalFlags().GetBool("markdown")
 		if isASCIIDoc {
 			printASCIIDocTable()
+			return
+		}
+		if isMarkdown {
+			printMarkdownTable()
 			return
 		}
 		if len(args) == 0 {
@@ -66,7 +71,8 @@ var listCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(listCmd)
 	listCmd.Flags().BoolP("clean", "c", false, "prints the clean mdtable with no annotations")
-	listCmd.Flags().BoolP("asciidoc", "a", false, "prints an asciidoc with no annotations")
+	listCmd.Flags().BoolP("asciidoc", "a", false, "prints an asciidoc table with no annotations")
+	listCmd.Flags().BoolP("markdown", "m", false, "prints a markdown table with no annotations")
 }
 
 func listWithArg(arg string) {
@@ -87,7 +93,7 @@ func listWithArg(arg string) {
 			planDir,
 			featureDir,
 		))
-		file, err := ioutil.ReadFile(filePath)
+		file, err := os.ReadFile(filePath)
 		if err != nil {
 			panic(err)
 		}
@@ -120,4 +126,8 @@ func printFeatureLabels() {
 
 func printASCIIDocTable() {
 	println(readBoard().ASCIIDocTable())
+}
+
+func printMarkdownTable() {
+	println(readBoard().Table().MarkdownTable())
 }

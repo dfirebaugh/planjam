@@ -23,7 +23,6 @@ package cmd
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -52,7 +51,7 @@ var boardCmd = &cobra.Command{
 		writeConfig(conf)
 		if _, err := os.Stat(boardFile); errors.Is(err, os.ErrNotExist) {
 			println("empty board created")
-			writeBoard(plan.Board{})
+			writeBoard(&plan.Board{})
 		}
 
 		b := readBoard()
@@ -102,9 +101,9 @@ func makePlanDir() error {
 	return nil
 }
 
-func readBoard() plan.Board {
+func readBoard() *plan.Board {
 	c := readConfig()
-	file, err := ioutil.ReadFile(c.CurrentBoard)
+	file, err := os.ReadFile(c.CurrentBoard)
 	if err != nil {
 		panic(err)
 	}
@@ -121,7 +120,7 @@ func getBoardName() string {
 	return strings.TrimSuffix(filepath.Base(c.CurrentBoard), filepath.Ext(c.CurrentBoard))
 }
 
-func writeBoard(b plan.Board) {
+func writeBoard(b *plan.Board) {
 	c := readConfig()
 	os.Remove(c.CurrentBoard)
 	boardFile, err := os.OpenFile(c.CurrentBoard, os.O_WRONLY|os.O_CREATE, 0644)
@@ -163,6 +162,7 @@ func printBoardWithIssueIDs() {
 	b.ShowLaneNumbers = false
 	println(b.String())
 }
+
 func printBoardWithLaneNumbers() {
 	println("board: ", getBoardName())
 	b := readBoard()
@@ -170,6 +170,7 @@ func printBoardWithLaneNumbers() {
 	b.ShowFeatureIDs = false
 	println(b.String())
 }
+
 func printBoard() {
 	printBoardWithIssueIDs()
 }
